@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <conio.h>
 
 
 //function Related to Voter
@@ -14,11 +15,13 @@ void CastVote();
 //Functions Related to Admin
 void Admin_Panel();
 void Admin_SignUp();
-void Admin_Login();
+void Admin_Login(int Count);
 void AddCandidate();
+void ShowCandidateInformation();
 void DisplayResults();
 void DeleteCandidate();
 void UpdateCandidate();
+void VoterDetail();
 
 //Functions Related to Data and Design
 void Load_Data();
@@ -38,6 +41,9 @@ int AdminCount = 0;
 struct candidate {
 	char C_Name[50];
 	char C_Party[30];
+	char C_Address[25];
+	char C_Education[40];
+
 	int vote;
 } candidates[4];
 
@@ -56,15 +62,22 @@ struct voter {
 
 int VoterCount = 0;
 int currentVoterIndex = -1;
-FILE *DVS;
+
+
+//Files to store data of specific Peoples
+FILE *Voter;  // store voter details
+FILE *Admin;  // store admin details
+FILE *Candidate; //Candidate Details
 
 int main() {
 	system("color F1");
 	Load_Data();
 	int choice=0;
 
+
 	do {
-		printf("\n\t\t\t\t\t---- Digital Voting System ----\n\n");
+		printf("\n\t\t\t\t\t---- Digital Voting System ----\n");
+		printf("\t\t\t\t\t     +++ Main Panel +++\n\n\n");
 		printf("1:	Voter Panel\n");
 		printf("2:	Admin Panel\n");
 		printf("3:	Exit\n");
@@ -86,6 +99,7 @@ int main() {
 			case 3:
 				waiting();
 				Star();
+				printf("\n\t\t\t\t\t---- Thank You %c ----\n",3);
 				Save_Data();
 				break;
 			default:
@@ -125,11 +139,14 @@ void Voter_Panel() {
 			case 3:
 				waiting();
 				Star();
+				printf("\n\t\t\t\t\t---- Returning Back to Main Panel ----\n");
 				Save_Data();
 				break;
 			case 4:
+				waiting();
 				Star();
 				Save_Data();
+				printf("\n\t\t\t\t\t---- Thank You %c ----\n",3);
 				exit(0);
 				break;
 			default:
@@ -145,7 +162,7 @@ void SignUp() {
 
 	printf("\n\t\t\t\t\t---- SignUp ----\n\n");
 	getchar(); //buffer Control
-	
+
 	printf("Name: ");
 	gets(new_Voter.V_name);
 	printf("Address: ");
@@ -155,7 +172,7 @@ void SignUp() {
 
 	printf("Age: ");
 	scanf("%d",&new_Voter.age);
-	
+
 	getchar(); //buffer Control
 
 	while(found == true) {
@@ -200,12 +217,12 @@ void SignUp() {
 ////this function is made for Voter Login when voter choose Login in Function Named login_Or_SignUp and this function is call in that function is call in login_Or_SignUp function
 void Login() {
 	char CNIC[20];
-	bool check = true;
+	bool check = false; //check for user account already Exist or not
 	int choice;
 
 	printf("\n\t\t\t\t\t---- Login ----\n\n");
 	getchar(); //buffer Control
-	
+
 	printf("CNIC: ");
 	gets(CNIC);
 
@@ -216,13 +233,13 @@ void Login() {
 
 	for(int i=0; i < VoterCount; i++) {
 		if(strcmp(voters[i].V_CNIC, CNIC) == 0) {
-			check = false;
+			check = true; //CNIC found mean Voter have Account
 			currentVoterIndex = i;
 			break;
 		}
 	}
 
-	if(check == false) {
+	if(check == true) {
 		printf("\n\t\t\t\t\t---- Successfully Logined ----\n\n");
 		do {
 			waiting();
@@ -239,7 +256,6 @@ void Login() {
 
 			switch(choice) {
 				case 1:
-
 					waiting();
 					Star();
 					DisplayElectoralSystem();
@@ -257,26 +273,39 @@ void Login() {
 				case 4:
 					waiting();
 					Star();
+					printf("\n\t\t\t\t\t---- Returning Back to Voter Panel ----\n");
 					Save_Data();
 					break;
 				case 5:
 					waiting();
 					Star();
 					Save_Data();
+					printf("\n\t\t\t\t\t---- Thank You %c ----\n",3);
 					exit(0);
 					break;
 				default:
 					printf("Invalid Choice try again");
 			}
-		} while(choice != 5);
+		} while(choice != 4);
 
 	} else {
-		printf("\n\n\n\t\t\t\t Account Not Found!\n");
-		printf("\t\t\t\t SignUp or Try Again!\n");
+		printf("\n\n\n\t\t\t\t Password Not Matched!\n");
+		int Selection; //selection of choice
+		printf("1. SignUp\n2. Try Again!\n");
+		scanf("%d",&Selection);
+
+		if(Selection == 1)
+			SignUp();
+		else if(Selection == 2)
+			Login(); //Recursion
+		else
+			printf("Invalid Choice try again");
+
 	}
 
 }
 
+//Display the information of Election system That how it works
 void DisplayElectoralSystem() {
 	char choice;
 	getchar();
@@ -300,6 +329,7 @@ void DisplayElectoralSystem() {
 
 }
 
+//Voter can Cast Vote to there Fav Candidate
 void CastVote() {
 	int UserChoice;
 	printf("\n\t\t\t\t\t---- Casting Vote Penel ----\n\n");
@@ -308,22 +338,22 @@ void CastVote() {
 		printf("You have already cast your vote!\n");
 		return;
 	}
-	
+
 	for (int i = 0; i < CandidateCount; i++) {
-        printf("%d. Name: %s \n   Party: %s\n", i + 1, candidates[i].C_Name, candidates[i].C_Party);
-    }
+		printf("%d. Name: %s \n   Party: %s\n", i + 1, candidates[i].C_Name, candidates[i].C_Party);
+	}
 
-    printf("\n\t\t\tChoose (1-%d): ", CandidateCount);
-    scanf("%d", &UserChoice);
+	printf("\n\t\t\tChoose (1-%d): ", CandidateCount);
+	scanf("%d", &UserChoice);
 
-    if (UserChoice >= 1 && UserChoice <= CandidateCount) {
-        candidates[UserChoice - 1].vote++;
-        voters[currentVoterIndex].IsVoted = 1;
-        Save_Data();
-        printf("\n\t\t\t\t\t---- Vote Casted Successfully ----\n\n");
-    } else {
-        printf("Invalid choice. Vote not recorded.\n");
-    }
+	if (UserChoice >= 1 && UserChoice <= CandidateCount) {
+		candidates[UserChoice - 1].vote++;
+		voters[currentVoterIndex].IsVoted = 1;
+		Save_Data();
+		printf("\n\t\t\t\t\t---- Vote Casted Successfully ----\n\n");
+	} else {
+		printf("Invalid choice. Vote not recorded.\n");
+	}
 
 
 }
@@ -350,16 +380,18 @@ void Admin_Panel() {
 			case 2:
 				waiting();
 				Star();
-				Admin_Login();
+				Admin_Login(1);
 				break;
 			case 3:
 				waiting();
 				Star();
+				printf("\n\t\t\t\t\t---- Returning Back to Main Panel  ----\n");
 				Save_Data();
 				break;
 			case 4:
 				Star();
 				Save_Data();
+				printf("\n\t\t\t\t\t---- Thank You %c ----\n",3);
 				exit(0);
 				break;
 			default:
@@ -369,6 +401,7 @@ void Admin_Panel() {
 
 }
 
+//Admin Create An Account Here
 void Admin_SignUp() {
 	printf("\n\t\t\t\t\t---- Admin SignUp ----\n\n");
 	getchar(); //Buffer Control
@@ -383,10 +416,12 @@ void Admin_SignUp() {
 	} else {
 		printf("Admin already Exist");
 	}
+
 	Save_Data();
 }
 
-void Admin_Login() {
+//Admin Access His/her Account
+void Admin_Login(int Count) {
 	char name[50];
 	char Password[50];
 
@@ -407,10 +442,12 @@ void Admin_Login() {
 			printf("\n\t\t\t\t\t---- Admin Main Menu ----\n\n");
 			printf("1: Add Candidate\n");
 			printf("2: View Result\n");
-			printf("3: Delete Candidate\n");
-			printf("4: Update Candidate\n");
-			printf("5: Go Back <---\n");
-			printf("6: Exits\n");
+			printf("3: Show Candidate Details\n");
+			printf("4: Delete Candidate\n");
+			printf("5: Update Candidate\n");
+			printf("6: Show Voter Detail\n");
+			printf("7: Go Back <---\n");
+			printf("8: Exits\n");
 
 			printf("\n\t\t\tChoice: ");
 			scanf("%d", &choice);
@@ -429,22 +466,34 @@ void Admin_Login() {
 				case 3:
 					waiting();
 					Star();
-					DeleteCandidate();
+					ShowCandidateInformation();
 					break;
 				case 4:
 					waiting();
 					Star();
-					UpdateCandidate();
+					DeleteCandidate();
 					break;
 				case 5:
 					waiting();
 					Star();
-					Save_Data();
-					return;
+					UpdateCandidate();
 					break;
 				case 6:
 					waiting();
+					Star();
+					VoterDetail();
+					break;
+				case 7:
+					waiting();
+					Star();
+					printf("\n\t\t\t\t\t---- Returning Back to Admin Panel  ----\n");
 					Save_Data();
+					return;
+					break;
+				case 8:
+					waiting();
+					Save_Data();
+					printf("\n\t\t\t\t\t---- Thank You %c ----\n",3);
 					exit(0);
 					break;
 				default:
@@ -453,11 +502,24 @@ void Admin_Login() {
 		} while(choice != 5);
 
 	} else {
-		printf("\n\t\t\t\t\t---- Admin Not Found ----\n\n");
-		waiting();
-		Star();
+		if(Count < 3) {
+
+			if(strcmp(name,admin_info.Admin_Name)!=0) {
+				printf("\n\t\t\t\t\t---- Invalid Admin Name ----\n\n");
+			} else {
+				printf("\n\t\t\t\t\t---- Invalid Admin Password ----\n\n");
+			}
+			Count++;
+			Admin_Login(Count);
+		} else {
+			printf("\n\t\t\t\t\t---- Limit Reached ----\n\n");
+			return;
+		}
+
 	}
 }
+
+//Admin Add an Candidate
 void AddCandidate() {
 	struct candidate New_Candidate;
 	if(CandidateCount>3) {
@@ -472,6 +534,12 @@ void AddCandidate() {
 	printf("Candidate Party: ");
 	gets(New_Candidate.C_Party);
 
+	printf("Candidate Address: ");
+	gets(New_Candidate.C_Address);
+
+	printf("Candidate Education: ");
+	gets(New_Candidate.C_Education);
+
 	New_Candidate.vote=0;
 
 	candidates[CandidateCount] = New_Candidate;
@@ -481,161 +549,373 @@ void AddCandidate() {
 	Save_Data();
 
 }
+
+//Display the Result with Candidate, Name Party and Vote
 void DisplayResults() {
-	printf("\n--- Election Results ---\n");
-	for(int i = 0; i < CandidateCount; i++) {
-		printf("%s (%s) - %d votes\n", candidates[i].C_Name, candidates[i].C_Party, candidates[i].vote);
+	struct candidate sortedCandidates[4];
+
+	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE); // Handle to control console color
+
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo(h, &csbi);
+
+	WORD originalAttr = csbi.wAttributes;         // Save original attribute
+	WORD background = originalAttr & 0xF0;        // Extract background (e.g., F0 from F1)
+
+	int TotalVotes = 0;
+
+	// Copy candidate data
+	for (int i = 0; i < CandidateCount; i++) {
+		sortedCandidates[i] = candidates[i];
+		TotalVotes += candidates[i].vote;
 	}
+
+	// Sort by votes (descending)
+	for (int i = 0; i < CandidateCount - 1; i++) {
+		for (int j = 0; j < CandidateCount - i - 1; j++) {
+			if (sortedCandidates[j].vote < sortedCandidates[j + 1].vote) {
+				struct candidate temp = sortedCandidates[j];
+				sortedCandidates[j] = sortedCandidates[j + 1];
+				sortedCandidates[j + 1] = temp;
+			}
+		}
+	}
+
+	printf("\n\t\t\t\t\t--- Election Results ---\n\n");
+
+	for (int i = 0; i < CandidateCount; i++) {
+		float percent = 0;
+		if (TotalVotes > 0)
+			percent = ((float)sortedCandidates[i].vote / TotalVotes) * 100;
+
+		// Reset text color before printing candidate info
+		SetConsoleTextAttribute(h, originalAttr);
+		printf("\t\t%s (%s) - %d votes\n", sortedCandidates[i].C_Name, sortedCandidates[i].C_Party, sortedCandidates[i].vote);
+
+		// Determine bar color based on percentage
+		WORD barColor;
+		if (percent > 80)
+			barColor = 10; // Bright Green
+		else if (percent > 60)
+			barColor = 9;  // Bright Blue
+		else if (percent > 40)
+			barColor = 14; // Yellow
+		else
+			barColor = 12; // Bright Red
+
+		// Apply foreground color + keep background
+		SetConsoleTextAttribute(h, background | barColor);
+
+		printf("\t\t    |");
+		int barLength = (int)(percent / 2); // Max 50 blocks
+		for (int j = 0; j < barLength; j++) {
+			printf("%c", 219);
+		}
+
+		// Reset to original color
+		SetConsoleTextAttribute(h, originalAttr);
+		printf(" (%.2f%%)\n\n", percent);
+	}
+
+	// Final message
+	SetConsoleTextAttribute(h, originalAttr);
+	printf("\n\n\t\t\t\tWaiting for 5 sec!!");
+	Sleep(5 * 1000);
+}
+
+
+//Show all the Information of Candidate to Admin
+void ShowCandidateInformation() {
+	printf("\n\t\t\t\t\t---- Information of Candidates ----\n\n");
+	for(int i = 0; i < CandidateCount; i++) {
+		printf("Name: %s\n", candidates[i].C_Name);
+		printf("Party: %s\n", candidates[i].C_Party);
+		printf("Address: %s\n", candidates[i].C_Address);
+		printf("Education: %s\n", candidates[i].C_Education);
+		printf("Vote: %d\n\n", candidates[i].vote);
+	}
+
+	printf("\n\n\t\t\t\tWaiting for 5 sec!!");
+	Sleep(5 * 1000);
 }
 
 // Function to Delete the Candidate Admin Only
 void DeleteCandidate() {
-    int choice;
-    char confirm;
+	int choice;
+	char confirm;
 
-    if (CandidateCount == 0) {
-        printf("\n\t\t\t\tNo candidates to delete.\n");
-        return;
-    }
+	if (CandidateCount == 0) {
+		printf("\n\t\t\t\tNo candidates to delete.\n");
+		return;
+	}
 
-    printf("\n\t\t\t\t---- Delete Candidate ----\n\n");
-    for (int i = 0; i < CandidateCount; i++) {
-        printf("%d. %s (%s)\n", i + 1, candidates[i].C_Name, candidates[i].C_Party);
-    }
+	printf("\n\t\t\t\t---- Delete Candidate ----\n\n");
 
-    printf("\nEnter the number of the candidate to delete: ");
-    scanf("%d", &choice);
+	//show all added Candidates
+	for (int i = 0; i < CandidateCount; i++) {
+		printf("%d. %s (%s)\n", i + 1, candidates[i].C_Name, candidates[i].C_Party);
+	}
 
-    if (choice < 1 || choice > CandidateCount) {
-        printf("Invalid selection.\n");
-        return;
-    }
+	printf("\nEnter the number of the candidate to delete: ");
+	scanf("%d", &choice);
 
-    getchar(); // Clear newline
-    printf("Are you sure you want to delete '%s'? (Y/N): ", candidates[choice - 1].C_Name);
-    scanf("%c", &confirm);
+	//if choice or selection is Invalid
+	if (choice < 1 || choice > CandidateCount) {
+		printf("Invalid selection.\n");
+		return;
+	}
 
-    if (confirm == 'Y' || confirm == 'y') {
-        for (int i = choice - 1; i < CandidateCount - 1; i++) {
-            candidates[i] = candidates[i + 1];
-        }
+	getchar(); // buffer Control
 
-        CandidateCount--;
-        Save_Data();
-        printf("Candidate deleted successfully.\n");
-    } else {
-        printf("Deletion cancelled.\n");
-    }
+	//confirm from Admin That are you sure you want to delete the Candidate with name If Yes(y) delete otherwise not
+	printf("Are you sure you want to delete '%s'? (Y/N): ", candidates[choice - 1].C_Name);
+	scanf("%c", &confirm);
+
+	if (confirm == 'Y' || confirm == 'y') {
+		for (int i = choice - 1; i < CandidateCount - 1; i++) {
+			candidates[i] = candidates[i + 1];
+		}
+
+		CandidateCount--;
+		Save_Data();
+		printf("Candidate deleted successfully.\n");
+	} else {
+		printf("Deletion cancelled.\n");
+	}
 }
 
 //Function to Update the Candidate information
 void UpdateCandidate() {
-    int choice;
-    char confirm;
+	int choice;
+	char confirm;
 
-    if (CandidateCount == 0) {
-        printf("\n\t\t\t\tNo candidates to update.\n");
-        return;
-    }
+	//check for candidate if no candidate is added before return to admin panel
+	if (CandidateCount == 0) {
+		printf("\n\t\t\t\tNo candidates to update.\n");
+		return;
+	}
 
-    printf("\n\t\t\t\t---- Update Candidate ----\n\n");
-    for (int i = 0; i < CandidateCount; i++) {
-        printf("%d. %s (%s)\n", i + 1, candidates[i].C_Name, candidates[i].C_Party);
-    }
+	printf("\n\t\t\t\t---- Update Candidate ----\n\n");
 
-    printf("\nEnter the number of the candidate to update: ");
-    scanf("%d", &choice);
+	//display all candidates to select the candidate for update
+	for (int i = 0; i < CandidateCount; i++) {
+		printf("%d. %s (%s)\n", i + 1, candidates[i].C_Name, candidates[i].C_Party);
+	}
 
-    if (choice < 1 || choice > CandidateCount) {
-        printf("Invalid selection.\n");
-        return;
-    }
+	printf("\nEnter the number of the candidate to update: ");
+	scanf("%d", &choice);
 
-    getchar(); // flush newline
-    printf("You selected: %s (%s)\n", candidates[choice - 1].C_Name, candidates[choice - 1].C_Party);
-    printf("Are you sure you want to update this candidate? (Y/N): ");
-    scanf("%c", &confirm);
+	//if choice or selection is Invalid
+	if (choice < 1 || choice > CandidateCount) {
+		printf("Invalid selection.\n");
+		return;
+	}
 
-    if (confirm == 'Y' || confirm == 'y') {
-        getchar(); // flush newline
-        printf("Enter new name: ");
-        gets(candidates[choice - 1].C_Name);
-        printf("Enter new party: ");
-        gets(candidates[choice - 1].C_Party);
+	getchar(); // Buffer Control
 
-        Save_Data();
-        printf("Candidate updated successfully.\n");
-    } else {
-        printf("Update cancelled.\n");
-    }
+
+	printf("You selected: %s (%s)\n", candidates[choice - 1].C_Name, candidates[choice - 1].C_Party); //give information about selected candidate
+	printf("Are you sure you want to update this candidate? (Y/N): "); // confirm about update
+	scanf("%c", &confirm);
+
+	if (confirm == 'Y' || confirm == 'y') {
+		getchar(); // flush newline
+		printf("Enter new name: ");
+		gets(candidates[choice - 1].C_Name);
+		printf("Enter new party: ");
+		gets(candidates[choice - 1].C_Party);
+		printf("Enter new Address: ");
+		gets(candidates[choice - 1].C_Address);
+		printf("Enter new Education: ");
+		gets(candidates[choice - 1].C_Education);
+
+		Save_Data();
+		printf("Candidate updated successfully.\n");
+	} else {
+		printf("Update cancelled.\n");
+	}
 }
 
+//Search For Voter And Show his/her All details
+void VoterDetail() {
+	char CNIC[20];
+	int Index;
+	bool found = false; //voter check
+
+
+	printf("\n\t\t\t\t\t---- Voter Details ----\n\n");
+	getchar(); //buffer Control
+
+	printf("Searching For Voter Please enter His/Her CNIC: ");
+	gets(CNIC);
+
+	//check the Syntex Of CNIC
+	while(strlen(CNIC) != 15 || CNIC[5] != '-' || CNIC[13] != '-') {
+		printf("Invalid CNIC Try Again\nCNIC: ");
+		gets(CNIC);
+	}
+
+	for(int i=0; i < VoterCount; i++) {
+		if(strcmp(voters[i].V_CNIC, CNIC) == 0) {
+			Index = i; //CNIC matched and we store the user index
+
+			found = true;
+			break; //not need to check further so we stop the loop
+		}
+	}
+
+	if(found == true) {
+		printf("Name: %s\n",voters[Index].V_name);
+		printf("CNIC: %s\n",voters[Index].V_CNIC);
+		printf("Address: %s\n",voters[Index].V_address);
+		printf("Mobile Number: %s\n",voters[Index].V_Mobile_number);
+		printf("Age: %d\n",voters[Index].age);
+		printf("IsVoted: %d\n",voters[Index].IsVoted);
+
+
+		printf("\n\n\t\t\t\tWaiting for 5 sec!!");
+		Sleep(5 * 1000);
+
+	} else {
+		printf("Voter Not Found");
+	}
+
+}
 //this function is call in every fuction because its neccessary to save data. this function save data in file ;
 void Save_Data() {
-	DVS = fopen("Digital voting system.txt", "w");
-	if(DVS == NULL) {
-		printf("Error in opening file to save data.\n");
+	Voter = fopen("Voter.txt", "w");
+	Admin = fopen("Admin.txt", "w");
+	Candidate = fopen("Candidate.txt", "w");
+
+	if(Voter == NULL) {
+		printf("Error in opening Voter file to save data.\n");
 		return;
 	}
 
 	//Save the Voter Information
+	fprintf(Voter, "VoterCount: %d\n", VoterCount);
 	for (int i = 0; i < VoterCount; i++) {
-		fprintf(DVS, "Name: %s\n", voters[i].V_name);
-		fprintf(DVS, "Address: %s\n", voters[i].V_address);
-		fprintf(DVS, "CNIC: %s\n", voters[i].V_CNIC);
-		fprintf(DVS, "Mobile Number: %s\n", voters[i].V_Mobile_number);
-		fprintf(DVS, "Age: %d\n", voters[i].age);
-		fprintf(DVS, "IsVoted: %d\n", voters[i].IsVoted);
+		fprintf(Voter, "Name: %s\n", voters[i].V_name);
+		fprintf(Voter, "Address: %s\n", voters[i].V_address);
+		fprintf(Voter, "CNIC: %s\n", voters[i].V_CNIC);
+		fprintf(Voter, "Mobile Number: %s\n", voters[i].V_Mobile_number);
+		fprintf(Voter, "Age: %d\n", voters[i].age);
+		fprintf(Voter, "IsVoted: %d\n", voters[i].IsVoted);
 
 	}
 
 	//save the Candidate Information
-	fprintf(DVS, "\n\nCandidateCount: %d\n", CandidateCount);
+
+	if(Candidate == NULL) {
+		printf("Error in opening Candidate file to save data.\n");
+		return;
+	}
+	fprintf(Candidate, "CandidateCount: %d\n", CandidateCount);
 	for (int i = 0; i < CandidateCount; i++) {
-		fprintf(DVS, "Candidate: %s %s %d\n", candidates[i].C_Name, candidates[i].C_Party, candidates[i].vote);
+		fprintf(Candidate, "Candidate Name: %s\n", candidates[i].C_Name);
+		fprintf(Candidate, "Candidate Party: %s\n", candidates[i].C_Party);
+		fprintf(Candidate, "Candidate Address: %s\n", candidates[i].C_Address);
+		fprintf(Candidate, "Candidate Education: %s\n", candidates[i].C_Education);
+		fprintf(Candidate, "Candidate Vote: %d\n", candidates[i].vote);
 	}
 
 	//Save Admin Information
-	fprintf(DVS, "\n\nAdmin Name: %s\n", admin_info.Admin_Name);
-	fprintf(DVS, "Admin Password: %s\n", admin_info.Admin_Password);
-	fprintf(DVS, "Admin Count: %d\n", AdminCount);
+	if(Admin == NULL) {
+		printf("Error in opening Admin file to save data.\n");
+		return;
+	}
+
+	fprintf(Admin, "Admin Name: %s\n", admin_info.Admin_Name);
+	fprintf(Admin, "Admin Password: %s\n", admin_info.Admin_Password);
+	fprintf(Admin, "Admin Count: %d\n", AdminCount);
 
 
-	fclose(DVS);
+	fclose(Voter);
+	fclose(Candidate);
+	fclose(Admin);
 }
 
 
 //this function is made to load data mean read the file before program start because file save data every time program compile. So its neccessary to read all data to avoid Multiple attemp
 void Load_Data() {
-	DVS = fopen("Digital voting system.txt", "r");
-	if (DVS == NULL) {
-		return;
+	Voter = fopen("Voter.txt", "r");
+	Candidate = fopen("Candidate.txt", "r");
+	Admin = fopen("Admin.txt", "r");
+
+	char buffer[200];
+
+	if (Voter == NULL || Admin == NULL || Candidate == NULL) {
+		printf("Error opening one or more files.\n");
+		exit(1);
 	}
 
-	//load Voter information
-	while (fscanf(DVS, "Name: %[^\n]\n", voters[VoterCount].V_name) == 1) {
-    fscanf(DVS, "Address: %[^\n]\n", voters[VoterCount].V_address);
-    fscanf(DVS, "CNIC: %[^\n]\n", voters[VoterCount].V_CNIC);
-    fscanf(DVS, "Mobile Number: %[^\n]\n", voters[VoterCount].V_Mobile_number);
-    fscanf(DVS, "Age: %d\n", &voters[VoterCount].age);
-    fscanf(DVS, "IsVoted: %d\n", &voters[VoterCount].IsVoted);
-    VoterCount++;
-}
 
+	if (Voter != NULL) {
+		fgets(buffer, sizeof(buffer), Voter);
+		sscanf(buffer, "VoterCount: %d", &VoterCount);
 
-	//load the Candidate information
-	fscanf(DVS, "CandidateCount: %d\n", &CandidateCount);
-	for (int i = 0; i < CandidateCount; i++) {
-		fscanf(DVS, "Candidate: %s %s %d\n", candidates[i].C_Name, candidates[i].C_Party, &candidates[i].vote);
+		for (int i = 0; i < VoterCount; i++) {
+			fgets(buffer, sizeof(buffer), Voter);
+			sscanf(buffer, "Name: %[^\n]", voters[i].V_name);
+
+			fgets(buffer, sizeof(buffer), Voter);
+			sscanf(buffer, "Address: %[^\n]", voters[i].V_address);
+
+			fgets(buffer, sizeof(buffer), Voter);
+			sscanf(buffer, "CNIC: %[^\n]", voters[i].V_CNIC);
+
+			fgets(buffer, sizeof(buffer), Voter);
+			sscanf(buffer, "Mobile Number: %[^\n]", voters[i].V_Mobile_number);
+
+			fgets(buffer, sizeof(buffer), Voter);
+			sscanf(buffer, "Age: %d", &voters[i].age);
+
+			fgets(buffer, sizeof(buffer), Voter);
+			sscanf(buffer, "IsVoted: %d", &voters[i].IsVoted);
+		}
+
+		fclose(Voter);
 	}
 
-	//load Admin Information
-	fscanf(DVS, "Admin Name: %s\n", &admin_info.Admin_Name);
-	fscanf(DVS, "Admin Password: %s\n", &admin_info.Admin_Password);
-	fscanf(DVS, "Admin Count: %d\n", &AdminCount);
+	if (Candidate != NULL) {
+		fgets(buffer, sizeof(buffer), Candidate);
+		sscanf(buffer, "CandidateCount: %d", &CandidateCount);
 
-	fclose(DVS);
+		for (int i = 0; i < CandidateCount; i++) {
+			fgets(buffer, sizeof(buffer), Candidate);
+			sscanf(buffer, "Candidate Name: %[^\n]", candidates[i].C_Name);
+
+			fgets(buffer, sizeof(buffer), Candidate);
+			sscanf(buffer, "Candidate Party: %[^\n]", candidates[i].C_Party);
+
+			fgets(buffer, sizeof(buffer), Candidate);
+			sscanf(buffer, "Candidate Address: %[^\n]", candidates[i].C_Address);
+
+			fgets(buffer, sizeof(buffer), Candidate);
+			sscanf(buffer, "Candidate Education: %[^\n]", candidates[i].C_Education);
+
+			fgets(buffer, sizeof(buffer), Candidate);
+			sscanf(buffer, "Candidate Vote: %d", &candidates[i].vote);
+		}
+
+		fclose(Candidate);
+	}
+
+	if (Admin != NULL) {
+		fgets(buffer, sizeof(buffer), Admin);
+		sscanf(buffer, "Admin Name: %[^\n]", admin_info.Admin_Name);
+
+		fgets(buffer, sizeof(buffer), Admin);
+		sscanf(buffer, "Admin Password: %[^\n]", admin_info.Admin_Password);
+
+		fgets(buffer, sizeof(buffer), Admin);
+		sscanf(buffer, "Admin Count: %d", &AdminCount);
+
+		fclose(Admin);
+	}
+
 }
+
 
 //print loading then clear screen
 void waiting() {
