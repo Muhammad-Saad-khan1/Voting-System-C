@@ -1,0 +1,49 @@
+VoterCount: 8
+Name: Saad Khan
+Address: Dikhan
+CNIC: 12103-9320171-1
+Mobile Number: 03071731119
+Age: 19
+IsVoted: 1
+Name: Mudassir Niaz
+Address: Yarik
+CNIC: 13104-2412563-2
+Mobile Number: 0340503853
+Age: 25
+IsVoted: 1
+Name: Najeeb Ullah
+Address: Abbottabad
+CNIC: 13102-4125252-1
+Mobile Number: 859379573
+Age: 21
+IsVoted: 1
+Name: Haseeb
+Address: Buneer
+CNIC: 12103-3214920-1
+Mobile Number: 03042094029
+Age: 19
+IsVoted: 1
+Name: Jalil Rehman
+Address: Dikhan
+CNIC: 12103-2321442-2
+Mobile Number: 0303928238
+Age: 22
+IsVoted: 1
+Name: Abu Bakker
+Address: Dikhan Khutti
+CNIC: 12103-2414122-5
+Mobile Number: 03984291849
+Age: 25
+IsVoted: 1
+Name: Hasnain
+Address: Dikhan
+CNIC: 12103-9247422-4
+Mobile Number: 032878757
+Age: 23
+IsVoted: 1
+Name: AISHA
+Address: abbottabad
+CNIC: 17301-3308885-6
+Mobile Number: 03456778
+Age: 876
+IsVoted: 0

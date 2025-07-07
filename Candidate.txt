@@ -1,0 +1,21 @@
+CandidateCount: 4
+Candidate Name: Imran Khan
+Candidate Party: PTI
+Candidate Address: Mianwali
+Candidate Education: PHD
+Candidate Vote: 5
+Candidate Name: Shahbaz Shareef
+Candidate Party: PMLN
+Candidate Address: Lahore
+Candidate Education: M-Phil
+Candidate Vote: 1
+Candidate Name: Molana Fazzal Rehman
+Candidate Party: JUI
+Candidate Address: Yarik Dera ismail khan
+Candidate Education: Master Degree
+Candidate Vote: 3
+Candidate Name: Bilawal Bhutto
+Candidate Party: PPP
+Candidate Address: Sindh
+Candidate Education: double MA
+Candidate Vote: 2
